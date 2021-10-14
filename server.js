@@ -6,10 +6,10 @@ const { logSuccess, logInfo, logWarning, logError } = require(`./dependencies/he
 const { connectDatabase, disconnectDatabase } = require(`./dependencies/helpers/database.helpers`);
 
 // importing required config params
-const { server_MODE, NODE_PORT, MAX_FILE_SIZE_ALLOWED_BYTES, HTTP_STATUS_CODES: { SUCCESS } } = require(`./dependencies/config`);
+const { APP_MODE, NODE_PORT, MAX_FILE_SIZE_ALLOWED_BYTES, HTTP_STATUS_CODES: { SUCCESS } } = require(`./dependencies/config`);
 
 // importing required routers
-const { systemRoleRouter } = require(`./api/routers/system-role.router`);
+const allRouters = require(`./api/routers`);
 // REMIANING ROUTERS GO HERE
 
 
@@ -25,7 +25,7 @@ const server = express();
   try {
 
     // Listening requests on the specified PORT
-    server.listen(NODE_PORT, logInfo(`Initializing server in ${server_MODE} mode. Please wait.`));
+    server.listen(NODE_PORT, logInfo(`Initializing server in ${APP_MODE} mode. Please wait.`));
 
     // declaring globals
     global.CONNECTED_CLIENTS = {};
@@ -40,11 +40,26 @@ const server = express();
     server.use(express.urlencoded({ extended: false }));
 
     // api handlers
-    server.use(`/api/system-roles`, systemRoleRouter); // validation done
+    server.use(`/api`, allRouters); // validation done
     // LIST OF API HANDLERS GO HERE
 
     // creating test route
-    server.get(`/`, (req, res, next) => res.status(SUCCESS).send(`|| Service is UP & RUNNING in ${server_MODE} mode ||`));
+    server.get(`/`, (req, res, next) => res.status(SUCCESS).send(`|| Service is UP & RUNNING in ${APP_MODE} mode ||`));
+
+    //Error Handling
+    server.use((req, res, next) => {
+      const error = new Error('Not Found');
+      error.status = 404;
+      next(error);
+    })
+    server.use((error, req, res, next) => {
+      res.status(error.status || 500);
+      res.json({
+        error: {
+          message: error.message
+        }
+      })
+    })
 
 
 

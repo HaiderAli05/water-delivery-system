@@ -2,7 +2,7 @@
 const Joi = require(`joi`);
 
 // importing required custom data validators
-const { objectIdValidation } = require(`../helpers/input-validation.helpers`);
+const { objectIdValidation } = require(`../helpers/joi.helpers`);
 
 
 
